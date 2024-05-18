@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/localStorageService";
 import Header from "./header/Header";
+import { Box, Card } from "@mui/material";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -29,18 +30,42 @@ export default function Home() {
     <>
       <Header></Header>
       {userDetails ? (
-        <div className="user-profile">
-          <div className="card">
-            <img
-              src={userDetails.picture}
-              alt={`${userDetails.given_name}'s profile`}
-              className="profile-pic"
-            />
-            <p>Welcome</p>
-            <h1 className="name">{userDetails.name}</h1>
-            <p className="email">{userDetails.email}</p>
-          </div>
-        </div>
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          height="100vh"
+          bgcolor={"#f0f2f5"}
+        >
+          <Card
+            sx={{
+              minWidth: 400,
+              maxWidth: 500,
+              boxShadow: 4,
+              borderRadius: 4,
+              padding: 4,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%", // Ensure content takes full width
+              }}
+            >
+              <img
+                src={userDetails.picture}
+                alt={`${userDetails.given_name}'s profile`}
+                className="profile-pic"
+              />
+              <p>Welcome back to Devteria,</p>
+              <h1 className="name">{userDetails.name}</h1>
+              <p className="email">{userDetails.email}</p>{" "}
+            </Box>
+          </Card>
+        </Box>
       ) : (
         <div>
           <h1>Loading...</h1>
