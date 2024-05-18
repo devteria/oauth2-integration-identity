@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/localStorageService";
 import Header from "./header/Header";
-import { Box, Card } from "@mui/material";
+import { Box, Card, CircularProgress, Typography } from "@mui/material";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ export default function Home() {
       `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${accessToken}`
     );
     const data = await response.json();
+    
     setUserDetails(data);
   };
 
@@ -67,9 +68,19 @@ export default function Home() {
           </Card>
         </Box>
       ) : (
-        <div>
-          <h1>Loading...</h1>
-        </div>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "30px",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
+          <CircularProgress></CircularProgress>
+          <Typography>Loading ...</Typography>
+        </Box>
       )}
     </>
   );
