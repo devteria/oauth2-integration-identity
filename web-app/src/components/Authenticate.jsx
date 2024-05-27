@@ -8,16 +8,29 @@ export default function Authenticate() {
   const [isLoggedin, setIsLoggedin] = useState(false);
 
   useEffect(() => {
-    const accessTokenRegex = /access_token=([^&]+)/;
-    const isMatch = window.location.href.match(accessTokenRegex);
+    console.log(window.location.href);
+
+    const authCodeRegex = /code=([^&]+)/;
+    const isMatch = window.location.href.match(authCodeRegex);
 
     if (isMatch) {
-      const accessToken = isMatch[1];
+      const authCode = isMatch[1];
 
-      console.log("Token: ", accessToken);
+      fetch(
+        `http://localhost:8080/identity/auth/outbound/authentication?code=${authCode}`,
+        {
+          method: "POST",
+        }
+      )
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          console.log(data);
 
-      setToken(accessToken);
-      setIsLoggedin(true);
+          setToken(data.result?.token);
+          setIsLoggedin(true);
+        });
     }
   }, []);
 
@@ -32,7 +45,7 @@ export default function Authenticate() {
       <Box
         sx={{
           display: "flex",
-          flexDirection : "column",
+          flexDirection: "column",
           gap: "30px",
           justifyContent: "center",
           alignItems: "center",
