@@ -65,7 +65,7 @@ export default function Home() {
                 width: "100%", // Ensure content takes full width
               }}
             >
-              <p>Welcome back to Devteria,</p>
+              <p>Welcome back to Devteria, {userDetails.username}</p>
               <h1 className="name">{`${userDetails.firstName} ${userDetails.lastName}`}</h1>
               <p className="email">{userDetails.dob}</p>
               <ul>
