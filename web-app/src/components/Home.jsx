@@ -10,11 +10,20 @@ export default function Home() {
 
   const getUserDetails = async (accessToken) => {
     const response = await fetch(
-      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${accessToken}`
+      "http://localhost:8080/identity/users/my-info",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
+
     const data = await response.json();
-    
-    setUserDetails(data);
+
+    console.log(data.result);
+
+    setUserDetails(data.result);
   };
 
   useEffect(() => {
@@ -56,14 +65,17 @@ export default function Home() {
                 width: "100%", // Ensure content takes full width
               }}
             >
-              <img
-                src={userDetails.picture}
-                alt={`${userDetails.given_name}'s profile`}
-                className="profile-pic"
-              />
               <p>Welcome back to Devteria,</p>
-              <h1 className="name">{userDetails.name}</h1>
-              <p className="email">{userDetails.email}</p>{" "}
+              <h1 className="name">{`${userDetails.firstName} ${userDetails.lastName}`}</h1>
+              <p className="email">{userDetails.dob}</p>
+              <ul>
+                User's roles:
+                {userDetails.roles?.map((item, index) => (
+                  <li className="email" key={index}>
+                    {item.name}
+                  </li>
+                ))}
+              </ul>
             </Box>
           </Card>
         </Box>
