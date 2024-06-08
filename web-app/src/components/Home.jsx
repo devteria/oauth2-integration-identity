@@ -62,9 +62,30 @@ export default function Home() {
   const addPassword = (event) => {
     event.preventDefault();
 
-    getUserDetails(getToken());
+    const body = {
+      password: password,
+    };
 
-    showSuccess("Your password has been created, you can use your password to login")
+    fetch("http://localhost:8080/identity/users/create-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify(body),
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (data.code != 1000) throw new Error(data.message);
+
+        getUserDetails(getToken());
+        showSuccess(data.message);
+      })
+      .catch((error) => {
+        showError(error.message);
+      });
   };
 
   useEffect(() => {
@@ -132,7 +153,7 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              {!userDetails.noPassword && (
+              {userDetails.noPassword && (
                 <Box
                   component="form"
                   onSubmit={addPassword}
