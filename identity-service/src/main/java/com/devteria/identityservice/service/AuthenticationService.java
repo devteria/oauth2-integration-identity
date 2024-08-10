@@ -4,11 +4,16 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
 
+import com.devteria.identityservice.constant.PredefinedRole;
 import com.devteria.identityservice.dto.request.ExchangeTokenRequest;
-import com.devteria.identityservice.repository.OutboundIdentityClient;
+import com.devteria.identityservice.entity.Role;
+import com.devteria.identityservice.repository.httpclient.OutboundIdentityClient;
+import com.devteria.identityservice.repository.httpclient.OutboundUserClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,6 +52,7 @@ public class AuthenticationService {
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
     OutboundIdentityClient outboundIdentityClient;
+    OutboundUserClient outboundUserClient;
 
     @NonFinal
     @Value("${jwt.signerKey}")
@@ -99,8 +105,28 @@ public class AuthenticationService {
 
         log.info("TOKEN RESPONSE {}", response);
 
+        // Get user info
+        var userInfo = outboundUserClient.getUserInfo("json", response.getAccessToken());
+
+        log.info("User Info {}", userInfo);
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.builder().name(PredefinedRole.USER_ROLE).build());
+
+        // Onboard user
+        var user = userRepository.findByUsername(userInfo.getEmail()).orElseGet(
+                () -> userRepository.save(User.builder()
+                                .username(userInfo.getEmail())
+                                .firstName(userInfo.getGivenName())
+                                .lastName(userInfo.getFamilyName())
+                                .roles(roles)
+                        .build()));
+
+        // Generate token
+        var token = generateToken(user);
+
         return AuthenticationResponse.builder()
-                .token(response.getAccessToken())
+                .token(token)
                 .build();
     }
 
@@ -108,11 +134,11 @@ public class AuthenticationService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         var user = userRepository
                 .findByUsername(request.getUsername())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
-        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if (!authenticated) throw new AppException(ErrorCode.INVALID_CREDENTIALS);
 
         var token = generateToken(user);
 
@@ -168,8 +194,8 @@ public class AuthenticationService {
                 ))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
-                .build();
 
+                .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
 
         JWSObject jwsObject = new JWSObject(header, payload);
