@@ -3,7 +3,6 @@ package com.devteria.identityservice.service;
 import java.util.HashSet;
 import java.util.List;
 
-import com.devteria.identityservice.dto.request.PasswordCreationRequest;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,7 +25,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -52,30 +50,13 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    public void createPassword(PasswordCreationRequest request){
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-
-        User user = userRepository.findByUsername(name).orElseThrow(
-                () -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
-        if (StringUtils.hasText(user.getPassword()))
-            throw new AppException(ErrorCode.PASSWORD_EXISTED);
-
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        userRepository.save(user);
-    }
-
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String name = context.getAuthentication().getName();
 
         User user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        var userResponse = userMapper.toUserResponse(user);
-        userResponse.setNoPassword(!StringUtils.hasText(user.getPassword()));
-
-        return userResponse;
+        return userMapper.toUserResponse(user);
     }
 
     @PostAuthorize("returnObject.username == authentication.name")
