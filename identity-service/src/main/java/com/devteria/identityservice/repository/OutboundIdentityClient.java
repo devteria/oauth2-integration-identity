@@ -1,4 +1,4 @@
-package com.devteria.identityservice.repository.httpclient;
+package com.devteria.identityservice.repository;
 
 import com.devteria.identityservice.dto.request.ExchangeTokenRequest;
 import com.devteria.identityservice.dto.response.ExchangeTokenResponse;
